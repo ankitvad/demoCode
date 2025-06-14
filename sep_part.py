@@ -22,6 +22,8 @@ This script generates sentence pairs from a given dataset by processing the refe
 Updated to work on extracted .txt files and not really on pandas dataframe.
 
 python sep_partition.py [aws_transcripts-pickle] [corrup/correc_folder]
+
+python sep_part.py /datasets/ankitUW/redoBART/Data/synthData/en_proc_transc_anon_6300.p /datasets/ankitUW/redoBART/Data/tmpSynth/
 '''
 
 def sent_pair(ref, hyp):
@@ -120,6 +122,12 @@ if __name__ == '__main__':
     subst_loc = sys.argv[2]
     correc_loc = glob.glob(subst_loc+"correc_*/")
     corrup_loc = glob.glob(subst_loc+"corrup_*/")
+    A = []
+    for i in ids:
+        a = awsTrn[i]
+        assert(a[-7:] == "dollars")
+        a = a[:-7].strip()#remove dollars
+        A.append(a)
     for c in correc_loc + corrup_loc:
         #For Correction:
         #AWS = SRC = HYP
@@ -135,22 +143,25 @@ if __name__ == '__main__':
         allMod = glob.glob(c+"*.txt")
         assert(len(allMod) == len(ids))
         #Load all the data to be chunked.
+        M = []
         for i in ids:
-            a = awsTrn[i]
-            assert(a[-7:] == "dollars")
-            a = a[:-7].strip()#remove dollars
+            #a = awsTrn[i]
+            #assert(a[-7:] == "dollars")
+            #a = a[:-7].strip()#remove dollars
             m = open(c+i+".txt", "r").read().strip()
             if m[-7:] == "dollars":
                 m = m[:-7].strip()
-            sentA_M.append([a,m])
+            M.append(m)
+        assert(len(M) == len(A))
+        sentA_M = list(zip(A, M))#[(A,M), (A,M), ...]
         #Parallel Process the generation.
         lF = len(sentA_M)
         with tqdm(total=lF) as pbar:
             pbar.set_description("Processing sentences")
-            with concurrent.futures.ProcessPoolExecutor(max_workers=mp.cpu_count() - 5) as executor:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=mp.cpu_count() - 10) as executor:
                 # Submit tasks to the executor
                 #these_futures = [executor.submit(gen_sents, ii[::-1]) for ii in sentA_M]#Pass - [M,A] -> R, H
-                c = 0
+                cIdx = 0
                 these_futures = {}
                 for ii in sentA_M:
                     a,m = ii
@@ -160,8 +171,8 @@ if __name__ == '__main__':
                     else:#corrupt
                         r = a
                         h = m
-                    these_futures[executor.submit(gen_sents, [r,h])] = c
-                    c += 1
+                    these_futures[executor.submit(gen_sents, [r,h])] = cIdx
+                    cIdx += 1
                 results = {}
                 for future in concurrent.futures.as_completed(these_futures):
                     arg = these_futures[future]
