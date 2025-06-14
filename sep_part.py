@@ -120,14 +120,21 @@ if __name__ == '__main__':
     subst_loc = sys.argv[2]
     correc_loc = glob.glob(subst_loc+"correc_*/")
     corrup_loc = glob.glob(subst_loc+"corrup_*/")
-    for c in correc_loc:
+    for c in correc_loc + corrup_loc:
+        #For Correction:
         #AWS = SRC = HYP
         #MAN = REF = TRG
+        #For Corruption:
+        #AWS = TRG = REF
+        #MAN = SRC = HYP
         sR = []
         sH = []
         sentA_M = []
+        datType = c.split("/")[-2].split("_")[0]#correc/corrup
+        assert(datType in ["correc", "corrup"])
         allMod = glob.glob(c+"*.txt")
         assert(len(allMod) == len(ids))
+        #Load all the data to be chunked.
         for i in ids:
             a = awsTrn[i]
             assert(a[-7:] == "dollars")
@@ -136,22 +143,41 @@ if __name__ == '__main__':
             if m[-7:] == "dollars":
                 m = m[:-7].strip()
             sentA_M.append([a,m])
-    # Spawn a process pool with the default number of workers...
-    with concurrent.futures.ProcessPoolExecutor(max_workers=mp.cpu_count() - 10) as executor:
-        these_futures = [executor.submit(gen_sents, ii) for ii[::-1] in sentA_M]#Pass - [M,A] -> R, H
-        # Wait for all processes to finish
-        concurrent.futures.wait(these_futures)
-    for future in these_futures:
-        fun_op = future.result()
-        for tmp in fun_op:
-            sR.append(tmp[0])
-            sH.append(tmp[1])
-    rO = open(c+"REF", "w")
-    hO = open(c+"HYP", "w")
-    assert(len(sR) == len(sH))
-    L = len(sR)
-    for k in range(L):
-        tmpK = rO.write(sR[k]+"\n")
-        tmpK = hO.write(sH[k]+"\n")
-    rO.close()
-    hO.close()
+        #Parallel Process the generation.
+        lF = len(sentA_M)
+        with tqdm(total=lF) as pbar:
+            pbar.set_description("Processing sentences")
+            with concurrent.futures.ProcessPoolExecutor(max_workers=mp.cpu_count() - 5) as executor:
+                # Submit tasks to the executor
+                #these_futures = [executor.submit(gen_sents, ii[::-1]) for ii in sentA_M]#Pass - [M,A] -> R, H
+                c = 0
+                these_futures = {}
+                for ii in sentA_M:
+                    a,m = ii
+                    if datType == "correc":
+                        r = m
+                        h = a
+                    else:#corrupt
+                        r = a
+                        h = m
+                    these_futures[executor.submit(gen_sents, [r,h])] = c
+                    c += 1
+                results = {}
+                for future in concurrent.futures.as_completed(these_futures):
+                    arg = these_futures[future]
+                    results[arg] = future.result()
+                    pbar.update(1)
+            #concurrent.futures.wait(these_futures)
+        for tmp in results:
+            for j in results[tmp]:
+                sR.append(j[0])
+                sH.append(j[1])
+        rO = open(c+"REF", "w")
+        hO = open(c+"HYP", "w")
+        assert(len(sR) == len(sH))
+        L = len(sR)
+        for k in range(L):
+            tmpK = rO.write(sR[k]+"\n")
+            tmpK = hO.write(sH[k]+"\n")
+        rO.close()
+        hO.close()
