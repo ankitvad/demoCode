@@ -54,7 +54,7 @@ def openFiles(ref, hyp):
 	assert(len(ref_content) == len(hyp_content))
 	r_h_pair = []
 	L = len(ref_content)
-	for i in range(L):
+	for i in tqdm(range(L)):
 		r = ref_content[i]
 		h = hyp_content[i]
 		#If r and h not null.
@@ -72,24 +72,18 @@ def proc_locs(loc):
 	ref = loc+"REF"
 	hyp = loc+"HYP"
 	r_h_pair = openFiles(ref, hyp)
-	opW = loc+"R_H_NI.tsv"
-	writeOut = open(opW, "w")
+	#opW = loc+"R_H_NI.tsv"
+	#writeOut = open(opW, "w")
 	#Separate using \t||\t delimiter.
 	L = len(r_h_pair)
-	for i in range(L):
-		new_ref = r_h_pair[i][0]
-		hyp = r_h_pair[i][1]
-		tmpWO = writeOut.write(new_ref+"\t||\t"+hyp+"\n")
-	'''
-	if editType == "corrupt":
-		opW = loc+"SRC_NI"
-	elif editType == "correct":
-		opW = loc+"CORREC_NI"
-	writeOut = open(opW, "w")
-	for i in newRef:
-		tmpWO = writeOut.write(i+"\n")
-	'''
-	writeOut.close()
+	#Print out the values separately in R_NI and H_NI
+	x = open(loc+"R_NI", "w")
+	y = open(loc+"H_NI", "w")
+	for i in range(len(r_h_pair)):
+		tmpA = x.write(r_h_pair[i][0]+"\n")
+		tmpB = y.write(r_h_pair[i][1]+"\n")
+	x.close()
+	y.close()
 	return True
 
 
