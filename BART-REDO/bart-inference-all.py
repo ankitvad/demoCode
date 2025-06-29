@@ -12,26 +12,42 @@ import glob
 import time
 
 # TOKENIZERS_PARALLELISM=False
-
-# TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-inference-all.py models-LT/ ip_file.txt
+# TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-inference-all.py models-LT/ ip_file.txt 0-2
 
 model_name = sys.argv[1]
+indx_range = sys.argv[3].strip().split("-")
+assert len(indx_range) == 2, "Please provide a valid range for the model checkpoints."
+indx_range = [int(i) for i in indx_range]
+
 all_locations = glob.glob(model_name + "*/checkpoint-*/")
+all_locations = sorted(all_locations)
+all_locations = all_locations[indx_range[0]:indx_range[1]]
 
 ip_file = sys.argv[2]
 ip_file = open(ip_file, "r").read().strip().split("\n")
-
 #op_file = sys.argv[3]
-
 deviceC = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+#Check that RUNNING_NOW file does not exist and save it for al locations in all_locations.
+for m in all_locations:
+	if os.path.exists(m + "RUNNING_NOW"):
+		print("The RUNNING_NOW file exists for the model: ", m)
+		print("Please delete the RUNNING_NOW file to run the inference again.")
+		sys.exit(0)
+	running_now_file = open(m + "RUNNING_NOW", "w")
+	running_now_file.close()
 
 
 for m in tqdm(all_locations):
+	assert (os.path.exists(m+"RUNNING_DONE") == False)
 	print("Loading model from: ", m)
 	model_name = m
 	tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
 	tokenizer.pad_token_id = tokenizer.eos_token_id
 	tokenizer.padding_side = "right"
+	#Save the RUNNING_NOW file to indicate that the model is currently being processed.
+	#running_now_file = open(model_name + "RUNNING_NOW", "w")
+	#running_now_file.close()
 	"""## Model"""
 	model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 	model.generation_config.max_new_tokens = 200
@@ -51,6 +67,10 @@ for m in tqdm(all_locations):
 	del model, tokenizer, pipe, gen_answer
 	gc.collect()
 	torch.cuda.empty_cache()
+	#Delete RUNNING_NOW file to indicate that the model has been processed, and save RUNNING_DONE file to indicate that the model has been processed.
+	os.remove(m + "RUNNING_NOW")
+	running_done_file = open(m + "RUNNING_DONE", "w")
+	running_done_file.close()
 
 
 '''
