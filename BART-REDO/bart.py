@@ -1,14 +1,15 @@
 import torch
 import numpy as np
-import nltk
 import pandas as pd
 import pickle as p
 from transformers import AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq, AutoTokenizer, TrainingArguments, pipeline, logging, Seq2SeqTrainer, Seq2SeqTrainingArguments
 from datasets import Dataset
 from evaluate import load
 import sys
+import glob
 from tqdm import tqdm
 import os
+import gc
 #LIbrary to load better CLI parameter arguments
 import argparse
 
@@ -30,9 +31,17 @@ args = parser.parse_args()
 #Sample command to run the script:
 #TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart.py --train_src /datasets/ankitUW/resources/grndtr_data/EN/train_proc.csv --train_trg /datasets/ankitUW/resources/grndtr_data/EN/train_proc.csv --dev_src /datasets/ankitUW/resources/grndtr_data/EN/dev.csv --dev_trg /datasets/ankitUW/resources/grndtr_data/EN/dev.csv --op_dir ft-corrup-NI/ --resume_train 0
 
+op_dir = "/home/avadehra/scribendi/audio-HF/" + args.op_dir
+
 
 resumeTrain = args.resume_train
 if resumeTrain == 1:
+	resumeTrain = True
+else:
+	resumeTrain = False
+
+chk_chkp = glob.glob(op_dir+"checkpoint*")
+if chk_chkp:
 	resumeTrain = True
 else:
 	resumeTrain = False
@@ -54,7 +63,7 @@ val_ds = loadData(args.dev_src, args.dev_trg)
 train_dataset = Dataset.from_pandas(train_ds)
 val_dataset = Dataset.from_pandas(val_ds)
 
-model_name = "/datasets/model/bart-large/"
+model_name = "/home/avadehra/scribendi/dwnldModel/bart-large/"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
 tokenizer.pad_token_id = tokenizer.eos_token_id
@@ -69,11 +78,15 @@ def preprocess_function(examples):
 train_ds_tok = train_dataset.map(preprocess_function, batched=True, num_proc=60)#os.cpu_count() - 5)
 val_ds_tok = val_dataset.map(preprocess_function, batched=True, num_proc=60)#os.cpu_count() - 5)
 
+del train_ds, val_ds, train_dataset, val_dataset
+gc.collect()
+
 metric_wer = load('wer')
 
 def compute_metrics(eval_preds):
 	preds, labels = eval_preds
 	# decode preds and labels
+	preds[preds == -100] = tokenizer.pad_token_id
 	labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
 	decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
 	decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
@@ -84,6 +97,14 @@ def compute_metrics(eval_preds):
 	return {"wer_loss" : result}
 
 
+'''
+pred_ids = pred.predictions
++ pred_ids[pred_ids == -100] = tokenizer.pad_token_id
+pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+labels_ids[labels_ids == -100] = tokenizer.pad_token_id
+'''
+
+
 """## Model"""
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 model.generation_config.max_new_tokens = 150
@@ -92,8 +113,6 @@ model.generation_config.min_new_tokens = 2
 # Batching function
 data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
 
-op_dir = "/datasets/ankitUW/redoBART/" + op_dir
-
 # Define arguments of the finetuning
 training_args = Seq2SeqTrainingArguments(
 	output_dir=op_dir,
@@ -101,12 +120,12 @@ training_args = Seq2SeqTrainingArguments(
 	learning_rate=3e-5,
 	per_device_train_batch_size=16,# batch size for train
 	per_device_eval_batch_size=16,
-	gradient_accumulation_steps=8,
+	gradient_accumulation_steps=10,
 	eval_strategy="steps",
 	save_strategy="steps",
-	save_steps = 10000,
-	eval_steps = 10000,
-	save_total_limit=3,# num of checkpoints to save
+	save_steps = 5000,
+	eval_steps = 5000,
+	save_total_limit=2,# num of checkpoints to save
 	load_best_model_at_end = True,
 	num_train_epochs=6,
 	fp16=False,
