@@ -1,0 +1,5 @@
+#Run the code to kinda generate the output WER etc.
+
+python calc_result_all.py --test_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --test_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_loc models-LT/ --op_file LT_BASELINE_RESULTS.txt
+
+python calc_result_all.py --test_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --test_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_loc models-RED/ --op_file RED_BASELINE_RESULTS.txt
