@@ -1,0 +1,54 @@
+conda deactivate
+deactivate
+cd ~/scribendi/gotutiyan-BART/syntheticDataAudio/Data
+source ~/scribendi/gotutiyan-BART/P39/bin/activate
+clear
+
+cd /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/
+
+mkdir LT/synthData/correc_corrup_2x
+mkdir RED/synthData/correc_corrup_2x
+
+#ASR.txt, CORREC, CORREC_CORRUPT
+
+**python subst_prob_correc_corrup.py LT/train_matrix_fd_man_aws.p LT/synthData/correc_2x/CORREC LT/synthData/correc_corrup_2x/
+
+**python subst_prob_correc_corrup.py RED/train_matrix_fd_man_aws.p RED/synthData/correc_2x/CORREC RED/synthData/correc_corrup_2x/
+
+
+#Combine the files together:
+
+python combine_folder.py LT/synthData/correc_corrup_2x/ CORREC_CORRUP
+
+python combine_folder.py RED/synthData/correc_corrup_2x/ CORREC_CORRUP
+
+#Clean Out singular files:
+
+python removeTXT.py compress
+python removeTXT.py delete
+
+###Train Models:
+
+deactivate
+conda deactivate
+conda activate conda310
+cd /home/avadehra/scribendi/audio-HF
+clear
+
+
+#SRC-CORREC_CORRUP
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/correc_corrup_2x/CORREC_CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir models-LT/SRC-CORREC_CORRUP/ --resume_train 1
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/correc_corrup_2x/CORREC_CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir models-RED/SRC-CORREC_CORRUP/ --resume_train 1
+
+
+#CORREC_2X-CORREC_CORRUP
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/correc_corrup_2x/CORREC_CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/correc_2x/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir models-LT/CORREC_2X-CORREC_CORRUP/ --resume_train 1
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/correc_corrup_2x/CORREC_CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/correc_2x/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir models-RED/CORREC_2X-CORREC_CORRUP/ --resume_train 1
