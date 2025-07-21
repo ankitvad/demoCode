@@ -20,7 +20,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 #Take in the arguments for - training source, target and dev source and target and the location to save the model output and a boolean value whether to resume training or start from scratch.
 
-parser = argparse.ArgumentParser(description="BART pre-training Script")
+parser = argparse.ArgumentParser(description="BART fine-training Script")
 parser.add_argument('--train_src', type=str, help='Path to the training source file')
 parser.add_argument('--train_trg', type=str, help='Path to the training target file')
 parser.add_argument('--dev_src', type=str, help='Path to the development source file')
@@ -29,7 +29,7 @@ parser.add_argument('--op_dir', type=str, help='Output directory for the model')
 parser.add_argument('--start_model', type=str, help='Starting weights for the model.')
 args = parser.parse_args()
 #Sample command to run the script:
-#TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart.py --train_src /datasets/ankitUW/resources/grndtr_data/EN/train_proc.csv --train_trg /datasets/ankitUW/resources/grndtr_data/EN/train_proc.csv --dev_src /datasets/ankitUW/resources/grndtr_data/EN/dev.csv --dev_trg /datasets/ankitUW/resources/grndtr_data/EN/dev.csv --op_dir ft-corrup-NI/ --start_model orig_model/
+#TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-ft.py --train_src /datasets/ankitUW/resources/grndtr_data/EN/train_proc.csv --train_trg /datasets/ankitUW/resources/grndtr_data/EN/train_proc.csv --dev_src /datasets/ankitUW/resources/grndtr_data/EN/dev.csv --dev_trg /datasets/ankitUW/resources/grndtr_data/EN/dev.csv --op_dir ft-corrup-NI/ --start_model bart-large
 
 op_dir = "/home/avadehra/scribendi/audio-HF/" + args.op_dir
 
@@ -111,9 +111,9 @@ training_args = Seq2SeqTrainingArguments(
 	gradient_accumulation_steps=5,
 	eval_strategy="steps",
 	save_strategy="steps",
-	save_steps = 500,
-	eval_steps = 500,
-	save_total_limit=2,# num of checkpoints to save
+	save_steps = 50,
+	eval_steps = 50,
+	save_total_limit=3,# num of checkpoints to save
 	load_best_model_at_end = True,
 	num_train_epochs=5,
 	fp16=False,
@@ -134,7 +134,10 @@ trainer = Seq2SeqTrainer(
 	compute_metrics=compute_metrics
 )
 
-trainer.train(resume_from_checkpoint=False)
+#resumeTrain = False
+#trainer.train(resume_from_checkpoint=resumeTrain)
+
+trainer.train()
 
 '''
 pipe = pipeline(task="text2text-generation", model = model, tokenizer = tokenizer, max_new_tokens = 72, batch_size=32)

@@ -21,12 +21,26 @@ indx_range = [int(i) for i in indx_range]
 
 all_locations = glob.glob(model_name + "*/checkpoint-*/")
 all_locations = sorted(all_locations)
-all_locations = all_locations[indx_range[0]:indx_range[1]]
+#all_locations = all_locations[indx_range[0]:indx_range[1]]
 
 ip_file = sys.argv[2]
 ip_file = open(ip_file, "r").read().strip().split("\n")
 #op_file = sys.argv[3]
 deviceC = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+#Check if RUNNING_DONE file exists for all locations and remove those folders from all_locations.
+
+all_locations_update = []
+for m in all_locations:
+	if os.path.exists(m + "RUNNING_DONE"):
+		print("The RUNNING_DONE file exists for the model: ", m)
+		print("Skipping this model as it has already been processed.")
+	else:
+		all_locations_update.append(m)
+
+all_locations_update = all_locations_update[indx_range[0]:indx_range[1]]
+
+all_locations = all_locations_update
 
 #Check that RUNNING_NOW file does not exist and save it for al locations in all_locations.
 for m in all_locations:
@@ -53,7 +67,7 @@ for m in tqdm(all_locations):
 	model.generation_config.max_new_tokens = 200
 	model.generation_config.num_beams = 6
 	#model.generation_config.min_new_tokens = 5
-	pipe = pipeline(task="text2text-generation", model=model, tokenizer=tokenizer, max_new_tokens=200, batch_size=20, device=deviceC)
+	pipe = pipeline(task="text2text-generation", model=model, tokenizer=tokenizer, max_new_tokens=200, batch_size=32, device=deviceC)
 	gen_answer = [out["generated_text"] for out in pipe(ip_file)]
 	# Write out in text file.
 	op_dir = model_name + "gen_output_beam6.txt"
