@@ -9,7 +9,6 @@ Version 1 :
 
 **TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python ppl_samp_1x.py ../../Data/LT/train_matrix_fd_aws_man.p LT/dev/dev /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt /home/avadehra/scribendi/dwnldModel/gpt2/	- D6-2
 
-
 '''
 
 import pickle as p
@@ -32,6 +31,10 @@ from torchmetrics.text import Perplexity
 from torch.nn import CrossEntropyLoss
 from collections import Counter
 
+
+#Global dictionary to save precomputes text spans and their perplexity. So doesnt have to be recalculated.
+sent_ppl_score = {}
+
 def load_gpt2_model(gpt2_model_path, device=None):
 	"""
 	Load GPT2 model + tokenizer from a given path.
@@ -49,19 +52,40 @@ def calculate_perplexity(ip_text, model, tokenizer, device):
 	"""
 	Compute perplexity of a text using GPT-2.
 	"""
-	encoded_inputs = tokenizer(ip_text, padding=True, truncation=True, max_length=100, return_tensors="pt", add_special_tokens=False).to(device)
-	with torch.no_grad():
-		outputs = model(**encoded_inputs)
-	logits = outputs.logits
-	# shift for causal LM
-	ppl_metric = Perplexity(ignore_index=tokenizer.pad_token_id)
-	ppl_scores = []
-	for i in range(len(ip_text)):
-		score = ppl_metric(preds=logits[i, :-1].unsqueeze(0).to('cpu'), target=encoded_inputs['input_ids'][i, 1:].unsqueeze(0).to('cpu'))
-		ppl_scores.append(score.item())
-	assert len(ppl_scores) == len(ip_text)
+	#Separate the texts which are already computed:
+	global sent_ppl_score
+	new_ip_text = []
+	existing_ip_text = []
+	existing_ppl_scores = []
+	for t in ip_text:
+		if t in sent_ppl_score:
+			existing_ip_text.append(t)
+			existing_ppl_scores.append(sent_ppl_score[t])
+		else:
+			new_ip_text.append(t)
+	if new_ip_text:
+		new_ppl_scores = []
+		encoded_inputs = tokenizer(new_ip_text, padding=True, truncation=True, max_length=60, return_tensors="pt", add_special_tokens=False).to(device)
+		with torch.no_grad():
+			outputs = model(**encoded_inputs)
+		logits = outputs.logits
+		# shift for causal LM
+		ppl_metric = Perplexity(ignore_index=tokenizer.pad_token_id)
+		#ppl_scores = []
+		for i in range(len(new_ip_text)):
+			score = ppl_metric(preds=logits[i, :-1].unsqueeze(0).to('cpu'), target=encoded_inputs['input_ids'][i, 1:].unsqueeze(0).to('cpu'))
+			new_ppl_scores.append(score.item())
+			sent_ppl_score[new_ip_text[i]] = score.item()
+		assert len(new_ppl_scores) == len(new_ip_text)
+		#Combine the scores:
+		ppl_scores = existing_ppl_scores + new_ppl_scores
+		existing_ip_text = existing_ip_text + new_ip_text
+	else:
+		ppl_scores = existing_ppl_scores
+	assert(len(ppl_scores) == len(ip_text))
+	assert(len(existing_ip_text) == len(ip_text))
 	lowest_ppl_idx = np.argmin(ppl_scores).item()
-	return lowest_ppl_idx
+	return existing_ip_text[lowest_ppl_idx]
 
 
 def closeMatch(word, freqDict):
@@ -157,6 +181,7 @@ def best_substitution(prefix_tokens, target_tokens, candidates, max_n=6):
 	candidates : list of possible candidates for substitution
 	max_n : maximum length of prefix+candidate to consider (like n-gram limit)
 	"""
+	choice_dict = {}
 	possible_choices = []
 	for c in candidates:
 		c = c.strip().split()
@@ -165,10 +190,11 @@ def best_substitution(prefix_tokens, target_tokens, candidates, max_n=6):
 		new_sent = " ".join(new_sent).strip()
 		new_sent = re.sub(r"\s+", " ", new_sent).strip()
 		possible_choices.append(new_sent)
+		choice_dict[new_sent] = c
 	#calculate_perplexity(ip_text, model, tokenizer, device):
-	best_idx = calculate_perplexity(possible_choices, model, tokenizer, device)
-	best_choice = candidates[best_idx]
-	return best_choice.strip().split()
+	best_span = calculate_perplexity(possible_choices, model, tokenizer, device)
+	best_choice = choice_dict[best_span]#candidates[best_idx]
+	return best_choice#.strip().split()
 
 def get_corrpt_sent(p_thresh):
 	L = len(src_trg_pair)
@@ -198,7 +224,7 @@ def get_corrpt_sent(p_thresh):
 						p_edit = p_cands[0].strip().split()
 					else:
 						#def best_substitution(prefix_tokens, target_tokens, candidates, max_n=6):
-						p_edit = best_substitution(prefix_tokens = tmpEdit[-7:], target_tokens = p, candidates = p_cands, max_n=6)
+						p_edit = best_substitution(prefix_tokens = tmpEdit[-6:], target_tokens = p, candidates = p_cands, max_n=5)
 					#assert not p_edit is None
 					assert(p_edit != None)#, "prefix: "+ str(tmpEdit[-7:]) + " target: "+ str(p) + " cands: "+ str(p_cands)
 					tmpEdit += p_edit
