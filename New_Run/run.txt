@@ -1,0 +1,26 @@
+cd /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run
+
+deactivate
+conda deactivate
+source ~/scribendi/gotutiyan-BART/P39/bin/activate
+clear
+
+
+mkdir LT_MPrfx/
+mkdir RED_MPrfx/
+mkdir LT_MPrfx/corrup_1x
+mkdir LT_MPrfx/correc_1x
+mkdir RED_MPrfx/corrup_1x
+mkdir RED_MPrfx/correc_1x
+
+
+>>> python subst_prefix_samp_1x.py ../Data/LT/train_matrix_fd_aws_man.p LT_MPrfx/correc_1x/ ../Data/LT/trgTrain.txt ../Data/LT/srcTrain.txt ../Data/LT/train_matrix_fd_man_aws.p ../Data/LT/synthData/ASR.txt - D4
+
+>>> python subst_prefix_samp_1x.py ../Data/LT/train_matrix_fd_man_aws.p LT_MPrfx/corrup_1x/ ../Data/LT/trgTrain.txt ../Data/LT/srcTrain.txt ../Data/LT/train_matrix_fd_aws_man.p ../Data/LT/synthData/ASR.txt - D5
+
+#do the same for RED
+
+>>> python subst_prefix_samp_1x.py ../Data/RED/train_matrix_fd_aws_man.p RED_MPrfx/correc_1x/ ../Data/RED/trgTrain.txt ../Data/RED/srcTrain.txt ../Data/RED/train_matrix_fd_man_aws.p ../Data/RED/synthData/ASR.txt - D6
+
+>>> python subst_prefix_samp_1x.py ../Data/RED/train_matrix_fd_man_aws.p RED_MPrfx/corrup_1x/ ../Data/RED/trgTrain.txt ../Data/RED/srcTrain.txt ../Data/RED/train_matrix_fd_aws_man.p ../Data/RED/synthData/ASR.txt - D7
+
