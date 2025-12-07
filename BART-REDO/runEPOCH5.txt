@@ -1,0 +1,105 @@
+deactivate
+conda deactivate
+conda activate conda310
+cd /home/avadehra/scribendi/audio-HF-samp/FINAL_RUN
+clear
+
+mkdir EPO5
+mkdir EPO5/RED_baseline
+mkdir EPO5/RED_baseline05
+mkdir EPO5/RED_MPrfx
+
+mkdir EPO5/LT_baseline
+mkdir EPO5/LT_baseline05
+mkdir EPO5/LT_MPrfx
+
+-------------
+#Epoch 5 No Early Stopping.
+-------------
+
+#Baseline Models - CORRUP - 1X - Insertion Data:
+
+##LT - Dataset:
+
+# Bart Large: ** - D7
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir EPO5/LT_baseline/BL/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --model_type BL
+
+# Bart Base: ** - D7
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir EPO5/LT_baseline/BB/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --model_type BB
+
+
+
+-------------------
+-------------------
+
+##RED - Dataset:
+
+# Bart Large: ** - D7
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir EPO5/RED_baseline/BL/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --model_type BL
+
+# Bart Base: ** - D7
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir EPO5/RED_baseline/BB/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --model_type BB
+
+-------------------
+-------------------
+-------------------
+
+#Baseline Models + 0.5 - CORRUP - 1X - Insertion Data:
+
+##LT - Dataset:
+
+# Bart Large: ** - D6
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_baseline05/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir EPO5/LT_baseline05/BL/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --model_type BL
+
+# Bart Base: ** - D6
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_baseline05/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir EPO5/LT_baseline05/BB/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --model_type BB
+
+--------
+--------
+
+##RED - Dataset:
+
+# Bart Large: ** - D6
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_baseline05/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir EPO5/RED_baseline05/BL/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --model_type BL
+
+
+# Bart Base: ** - D6
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_baseline05/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir EPO5/RED_baseline05/BB/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --model_type BB
+
+-------------------
+-------------------
+-------------------
+
+#Max Prefix + 0.5 - CORRUP - 1X - Insertion Data:
+
+##LT - Dataset:
+
+# Bart Large: ** - D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_MPrfx/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir EPO5/LT_MPrfx/BL/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --model_type BL
+
+# Bart Base: ** - D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_MPrfx/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir EPO5/LT_MPrfx/BB/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --model_type BB
+
+
+--------
+--------
+
+##RED - Dataset:
+
+# Bart Large: ** - D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_MPrfx/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir EPO5/RED_MPrfx/BL/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --model_type BL
+
+# Bart Base: ** - D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_MPrfx/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir EPO5/RED_MPrfx/BB/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --model_type BB

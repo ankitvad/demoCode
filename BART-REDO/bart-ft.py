@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pandas as pd
 import pickle as p
-from transformers import AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq, AutoTokenizer, TrainingArguments, pipeline, logging, Seq2SeqTrainer, Seq2SeqTrainingArguments
+from transformers import AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq, AutoTokenizer, Seq2SeqTrainer, Seq2SeqTrainingArguments, EarlyStoppingCallback, set_seed
 from datasets import Dataset
 from evaluate import load
 import sys
@@ -13,8 +13,7 @@ import gc
 #LIbrary to load better CLI parameter arguments
 import argparse
 
-#TOKENIZERS_PARALLELISM=False
-
+set_seed(240)
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -27,11 +26,10 @@ parser.add_argument('--dev_src', type=str, help='Path to the development source 
 parser.add_argument('--dev_trg', type=str, help='Path to the development target file')
 parser.add_argument('--op_dir', type=str, help='Output directory for the model')
 parser.add_argument('--start_model', type=str, help='Starting weights for the model.')
+parser.add_argument('--early_stop', action='store_true', help='Whether to use early stopping during training')
 args = parser.parse_args()
-#Sample command to run the script:
-#TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-ft.py --train_src /datasets/ankitUW/resources/grndtr_data/EN/train_proc.csv --train_trg /datasets/ankitUW/resources/grndtr_data/EN/train_proc.csv --dev_src /datasets/ankitUW/resources/grndtr_data/EN/dev.csv --dev_trg /datasets/ankitUW/resources/grndtr_data/EN/dev.csv --op_dir ft-corrup-NI/ --start_model bart-large
 
-op_dir = "/home/avadehra/scribendi/audio-HF/" + args.op_dir
+op_dir = args.op_dir
 
 def loadData(s,t):
 	df = pd.DataFrame()
@@ -47,11 +45,9 @@ train_ds = loadData(args.train_src, args.train_trg)
 val_ds = loadData(args.dev_src, args.dev_trg)
 
 train_dataset = Dataset.from_pandas(train_ds)
-val_dataset = Dataset.from_pandas(val_ds)
+val_dataset = Dataset.from_pandas(val_ds).shuffle(seed=42).select(range(1000))
 
-#model_name = "/home/avadehra/scribendi/dwnldModel/bart-large/"
-
-model_name = "/home/avadehra/scribendi/audio-HF/" + args.start_model
+model_name = args.start_model
 
 tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
 tokenizer.pad_token_id = tokenizer.eos_token_id
@@ -85,76 +81,70 @@ def compute_metrics(eval_preds):
 	return {"wer_loss" : result}
 
 
-'''
-pred_ids = pred.predictions
-+ pred_ids[pred_ids == -100] = tokenizer.pad_token_id
-pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-labels_ids[labels_ids == -100] = tokenizer.pad_token_id
-'''
-
-
 """## Model"""
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 model.generation_config.max_new_tokens = 150
 model.generation_config.min_new_tokens = 2
+model.generation_config.early_stopping = True
+model.generation_config.no_repeat_ngram_size = 3
+model.generation_config.num_beams = 4
+model.config.early_stopping = True
+model.config.no_repeat_ngram_size = 3
+model.config.num_beams = 4
 
 # Batching function
 data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
 
+early_stop = EarlyStoppingCallback(3, 0.0001)
+
 # Define arguments of the finetuning
 training_args = Seq2SeqTrainingArguments(
 	output_dir=op_dir,
-	#evaluation_strategy='epoch',
-	learning_rate=3e-5,
+	learning_rate=1e-5,
 	per_device_train_batch_size=16,# batch size for train
 	per_device_eval_batch_size=16,
-	gradient_accumulation_steps=5,
+	gradient_accumulation_steps=4,
 	eval_strategy="steps",
 	save_strategy="steps",
-	save_steps = 50,
-	eval_steps = 50,
+	save_steps = 100,
+	eval_steps = 100,
 	save_total_limit=3,# num of checkpoints to save
+	metric_for_best_model="wer_loss",
 	load_best_model_at_end = True,
-	num_train_epochs=5,
+	num_train_epochs=15,
 	fp16=False,
 	predict_with_generate=True,
 	dataloader_num_workers=16,
 	greater_is_better=False,
 	group_by_length=True,
-	report_to="none"
+	report_to="none",
+	save_only_model=True
 )
 
-trainer = Seq2SeqTrainer(
-	model=model,
-	args=training_args,
-	train_dataset=train_ds_tok,
-	eval_dataset=val_ds_tok,
-	tokenizer=tokenizer,
-	data_collator=data_collator,
-	compute_metrics=compute_metrics
-)
 
-#resumeTrain = False
-#trainer.train(resume_from_checkpoint=resumeTrain)
+assert(args.early_stop in [True, False]), "early_stop argument must be a boolean."
+
+if args.early_stop:
+	print("Using Early Stopping Callback")
+	trainer = Seq2SeqTrainer(
+		model=model,
+		args=training_args,
+		train_dataset=train_ds_tok,
+		eval_dataset=val_ds_tok,
+		tokenizer=tokenizer,
+		data_collator=data_collator,
+		compute_metrics=compute_metrics,
+		callbacks=[early_stop])
+else:
+	print("Not Using Early Stopping Callback")
+	trainer = Seq2SeqTrainer(
+		model=model,
+		args=training_args,
+		train_dataset=train_ds_tok,
+		eval_dataset=val_ds_tok,
+		tokenizer=tokenizer,
+		data_collator=data_collator,
+		compute_metrics=compute_metrics)
+
 
 trainer.train()
-
-'''
-pipe = pipeline(task="text2text-generation", model = model, tokenizer = tokenizer, max_new_tokens = 72, batch_size=32)
-
-dev_sents = open(dev,"r").read().strip().split("\n")
-s_t_h = {"s":[], "t":[], "h":[]}
-
-for d in tqdm(dev_sents):
-	tmp = d.split("|\t|")
-	assert(len(tmp) == 2)
-	s = tmp[0]
-	t = tmp[1]
-	result = pipe(s)
-	h = result[0]['generated_text']
-	s_t_h["s"].append(s)
-	s_t_h["t"].append(t)
-	s_t_h["h"].append(h)
-
-p.dump(s_t_h, open(op_dir+"s_t_h_infer.p", "wb"))
-'''
