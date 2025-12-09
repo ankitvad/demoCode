@@ -1,0 +1,138 @@
+deactivate
+conda deactivate
+conda activate conda310
+cd /home/avadehra/scribendi/audio-HF-samp/FINAL_RUN
+clear
+
+
+#LIB_TED - BART:
+
+EP5_FT/LT_baseline/BB/
+EP5_FT/LT_baseline/BL/
+
+EP5_FT/LT_baseline05/BB/
+EP5_FT/LT_baseline05/BL/
+
+EP5_FT/LT_MPrfx/BB/
+EP5_FT/LT_MPrfx/BL/
+
+#Daytona07:
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-inference.py EP5_FT/LT_baseline/BB/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-inference.py EP5_FT/LT_baseline/BL/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-inference.py EP5_FT/LT_baseline05/BB/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-inference.py EP5_FT/LT_baseline05/BL/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+#Daytona06:
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-inference.py EP5_FT/LT_MPrfx/BB/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-inference.py EP5_FT/LT_MPrfx/BL/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+-------------------
+-------------------
+
+#Red-ACE - BART:
+
+EP5_FT/RED_baseline/BB/
+EP5_FT/RED_baseline/BL/
+
+EP5_FT/RED_baseline05/BB/
+EP5_FT/RED_baseline05/BL/
+
+EP5_FT/RED_MPrfx/BB/
+EP5_FT/RED_MPrfx/BL/
+
+
+#Daytona 06:
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-inference.py EP5_FT/RED_baseline/BB/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-inference.py EP5_FT/RED_baseline/BL/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+
+#Daytona05:
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-inference.py EP5_FT/RED_baseline05/BB/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-inference.py EP5_FT/RED_baseline05/BL/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-inference.py EP5_FT/RED_MPrfx/BB/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-inference.py EP5_FT/RED_MPrfx/BL/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+-------------
+-------------
+--------------
+--------------
+
+
+#LIB_TED - Roberta:
+
+EP5_FT/LT_baseline/R-T/
+EP5_FT/LT_baseline05/R-T/
+EP5_FT/LT_MPrfx/R-T/
+EP5_FT/R_T_Base/LT/
+
+#Daytona04:
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bert-inference.py EP5_FT/LT_baseline/R-T/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bert-inference.py EP5_FT/LT_baseline05/R-T/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bert-inference.py EP5_FT/LT_MPrfx/R-T/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bert-inference.py EP5_FT/R_T_Base/LT/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+-------------------
+-------------------
+
+#Red-ACE - Roberta:
+
+EP5_FT/RED_baseline/R-T/
+EP5_FT/RED_baseline05/R-T/
+EP5_FT/RED_MPrfx/R-T/
+EP5_FT/R_T_Base/RED/
+
+
+#Daytona 03:
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bert-inference.py EP5_FT/RED_baseline/R-T/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bert-inference.py EP5_FT/RED_baseline05/R-T/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bert-inference.py EP5_FT/RED_MPrfx/R-T/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bert-inference.py EP5_FT/R_T_Base/RED/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+
+------------
+------------
+
+# Run inference on the baseline models:
+
+
+cd /home/avadehra/scribendi/audio-HF/
+
+#LT:
+
+models-LT-baseline/
+models-RED-baseline/
+
+#Daytona07:
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-inference-new.py models-LT-baseline/BB/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-inference-new.py models-LT-baseline/BL/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt
+
+
+#RED:
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-inference-new.py models-RED-baseline/BB/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-inference-new.py models-RED-baseline/BL/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt
+

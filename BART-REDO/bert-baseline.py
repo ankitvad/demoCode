@@ -14,21 +14,32 @@ import gc
 import argparse
 
 
-set_seed(240)
-
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-parser = argparse.ArgumentParser(description="BERT fine-tuning Script")
+parser = argparse.ArgumentParser(description="BERT pre-training Script")
 parser.add_argument('--train_src', type=str, help='Path to the training source file')
 parser.add_argument('--train_trg', type=str, help='Path to the training target file')
 parser.add_argument('--dev_src', type=str, help='Path to the development source file')
 parser.add_argument('--dev_trg', type=str, help='Path to the development target file')
 parser.add_argument('--op_dir', type=str, help='Output directory for the model')
-parser.add_argument('--start_model', type=str, help='Starting weights for the model.')
+parser.add_argument('--resume_train', type=int, choices=[0, 1], help='Resume training (1) or start fresh (0)')
+parser.add_argument('--model_path', type=str, default='', help='Path to a pre-trained model (optional)')
 parser.add_argument('--early_stop', action='store_true', help='Whether to use early stopping during training')
-args = parser.parse_args()
+parser.add_argument('--tie_encoder_decoder', action='store_true', help='Whether to tie encoder and decoder weights')
 
+args = parser.parse_args()
 op_dir = args.op_dir
+
+resumeTrain = args.resume_train
+if resumeTrain == 1:
+	resumeTrain = True
+else:
+	resumeTrain = False
+
+chk_chkp = glob.glob(op_dir+"checkpoint*")
+if chk_chkp:
+	resumeTrain = True
+else:
+	resumeTrain = False
+
 
 def loadData(s,t):
 	df = pd.DataFrame()
@@ -46,11 +57,10 @@ val_ds = loadData(args.dev_src, args.dev_trg)
 train_dataset = Dataset.from_pandas(train_ds)
 val_dataset = Dataset.from_pandas(val_ds).shuffle(seed=42).select(range(1000))
 
-model_name = args.start_model
-
+model_name = args.model_path
 tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
-assert(tokenizer.bos_token == tokenizer.cls_token)
-assert(tokenizer.eos_token == tokenizer.sep_token)
+tokenizer.bos_token = tokenizer.cls_token
+tokenizer.eos_token = tokenizer.sep_token
 
 def preprocess_function(examples):
 	model_inputs = tokenizer(examples['src'], max_length=150, truncation= True, padding="max_length")
@@ -61,7 +71,7 @@ def preprocess_function(examples):
 	#model_inputs['labels'] = [[-100 if token == tokenizer.pad_token_id else token for token in l] for l in model_inputs['labels']]
 	return model_inputs
 
-batch_size_val = 16
+batch_size_val = 8
 
 column_names = train_dataset.column_names
 train_ds_tok = train_dataset.map(preprocess_function, batched=True, num_proc=32, remove_columns=column_names)#, batch_size = batch_size_val)
@@ -73,12 +83,17 @@ del train_ds, val_ds, train_dataset, val_dataset
 gc.collect()
 metric_wer = load('wer')
 
+assert(args.tie_encoder_decoder in [True, False])
+if args.tie_encoder_decoder:
+	print("Tying Encoder and Decoder Weights")
+else:
+	print("Not Tying Encoder and Decoder Weights")
 
-model = EncoderDecoderModel.from_pretrained(model_name)
-assert(model.config.decoder_start_token_id == tokenizer.cls_token_id)
-assert(model.config.eos_token_id == tokenizer.sep_token_id)
-assert(model.config.pad_token_id == tokenizer.pad_token_id)
-assert(model.config.vocab_size == model.config.decoder.vocab_size)
+model = EncoderDecoderModel.from_encoder_decoder_pretrained(model_name, model_name, tie_encoder_decoder=args.tie_encoder_decoder)
+model.config.decoder_start_token_id = tokenizer.cls_token_id
+model.config.eos_token_id = tokenizer.sep_token_id
+model.config.pad_token_id = tokenizer.pad_token_id
+model.config.vocab_size = model.config.decoder.vocab_size
 
 # text generation parameters
 model.config.max_length = 150
@@ -115,7 +130,7 @@ training_args = Seq2SeqTrainingArguments(
 	per_device_train_batch_size=batch_size_val,
 	per_device_eval_batch_size=batch_size_val,
 	gradient_accumulation_steps=4,
-	learning_rate=1e-5,
+	learning_rate=1e-7,
 	save_steps = 100,
 	eval_steps = 100,
 	save_total_limit=3,
@@ -125,12 +140,13 @@ training_args = Seq2SeqTrainingArguments(
 	load_best_model_at_end = True,
 	greater_is_better=False,
 	fp16=False,
-	num_train_epochs=15,
+	num_train_epochs=25,
 	save_only_model=True,
-	warmup_ratio=0.1)
+	#warmup_ratio=0.1
+	)
 
 
-early_stop = EarlyStoppingCallback(3, 0.0001)
+early_stop = EarlyStoppingCallback(5, 0.0001)
 
 assert(args.early_stop in [True, False])
 
@@ -157,5 +173,6 @@ else:
 		compute_metrics=compute_metrics)
 
 
-trainer.train()
+trainer.train(resume_from_checkpoint=resumeTrain)
+
 
