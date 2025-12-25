@@ -1,0 +1,99 @@
+cd /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/
+
+---------
+
+# Generate the pseudo Correction file:
+
+python pseudo_corr.py LT_New/train_matrix_fd_pron_aws_man.p LT_New/train_matrix_fd_pron_man_aws.p LT_New/pseudo_src_correction.txt LT/synthData/ASR.txt
+
+
+python pseudo_corr.py RED_New/train_matrix_fd_pron_aws_man.p RED_New/train_matrix_fd_pron_man_aws.p RED_New/pseudo_src_correction.txt RED/synthData/ASR.txt
+
+-------
+
+deactivate
+conda deactivate
+conda activate conda310
+
+
+cd /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/
+clear
+
+mkdir LT_CorrIncorr
+mkdir RED_CorrIncorr
+
+
+mkdir LT_CorrIncorr/Base50/
+mkdir RED_CorrIncorr/Base50/
+
+mkdir LT_CorrIncorr/Base50/corrup_1x
+mkdir LT_CorrIncorr/Base50/corrup_1x_prfx
+
+mkdir RED_CorrIncorr/Base50/corrup_1x
+mkdir RED_CorrIncorr/Base50/corrup_1x_prfx
+
+
+-------
+- Baseline - 0.50:
+-------
+
+>>> python subst_base_sample_1x.py LT_New/train_matrix_fd_pron_man_aws.p LT_New/pseudo_src_correction.txt LT_CorrIncorr/Base50/corrup_1x/ LT/trgTrain.txt LT/srcTrain.txt distance not-mp - D1
+
+>>> python subst_base_sample_1x.py LT_New/train_matrix_fd_pron_man_aws.p LT_New/pseudo_src_correction.txt LT_CorrIncorr/Base50/corrup_1x_prfx/ LT/trgTrain.txt LT/srcTrain.txt prefix not-mp - D1
+
+#do the same for RED
+
+>>> python subst_base_sample_1x.py RED_New/train_matrix_fd_pron_man_aws.p RED_New/pseudo_src_correction.txt RED_CorrIncorr/Base50/corrup_1x/ RED/trgTrain.txt RED/srcTrain.txt distance not-mp - D2
+
+>>> python subst_base_sample_1x.py RED_New/train_matrix_fd_pron_man_aws.p RED_New/pseudo_src_correction.txt RED_CorrIncorr/Base50/corrup_1x_prfx/ RED/trgTrain.txt RED/srcTrain.txt prefix not-mp - D2
+
+-----
+
+
+-------
+- Baseline - 0.05:
+-------
+
+mkdir LT_CorrIncorr/Base5/
+mkdir RED_CorrIncorr/Base5/
+mkdir LT_CorrIncorr/Base5/corrup_1x
+mkdir LT_CorrIncorr/Base5/corrup_1x_prfx
+
+mkdir RED_CorrIncorr/Base5/corrup_1x
+mkdir RED_CorrIncorr/Base5/corrup_1x_prfx
+
+
+>>> python subst_base05_1x.py LT_New/train_matrix_fd_pron_man_aws.p LT_New/pseudo_src_correction.txt LT_CorrIncorr/Base5/corrup_1x/ LT/trgTrain.txt LT/srcTrain.txt distance not-mp - D2
+
+>>> python subst_base05_1x.py LT_New/train_matrix_fd_pron_man_aws.p LT_New/pseudo_src_correction.txt LT_CorrIncorr/Base5/corrup_1x_prfx/ LT/trgTrain.txt LT/srcTrain.txt prefix not-mp - D2
+
+#do the same for RED
+
+>>> python subst_base05_1x.py RED_New/train_matrix_fd_pron_man_aws.p RED_New/pseudo_src_correction.txt RED_CorrIncorr/Base5/corrup_1x/ RED/trgTrain.txt RED/srcTrain.txt distance not-mp - D3
+
+>>> python subst_base05_1x.py RED_New/train_matrix_fd_pron_man_aws.p RED_New/pseudo_src_correction.txt RED_CorrIncorr/Base5/corrup_1x_prfx/ RED/trgTrain.txt RED/srcTrain.txt prefix not-mp - D3
+
+
+-----
+-max prefix - 0.5
+----
+
+
+mkdir LT_CorrIncorr/mprfx05/
+mkdir RED_CorrIncorr/mprfx05/
+mkdir LT_CorrIncorr/mprfx05/corrup_1x
+mkdir LT_CorrIncorr/mprfx05/corrup_1x_prfx
+
+mkdir RED_CorrIncorr/mprfx05/corrup_1x
+mkdir RED_CorrIncorr/mprfx05/corrup_1x_prfx
+
+
+>>> python subst_mprfx05_1x.py LT_New/train_matrix_fd_pron_man_aws.p LT_CorrIncorr/mprfx05/corrup_1x/ LT/trgTrain.txt LT/srcTrain.txt LT_New/train_matrix_fd_pron_aws_man.p LT_New/pseudo_src_correction.txt distance not-mp - D1
+
+>>> python subst_mprfx05_1x.py LT_New/train_matrix_fd_pron_man_aws.p LT_CorrIncorr/mprfx05/corrup_1x_prfx/ LT/trgTrain.txt LT/srcTrain.txt LT_New/train_matrix_fd_pron_aws_man.p LT_New/pseudo_src_correction.txt prefix not-mp - D1
+
+#do the same for RE
+
+>>> python subst_mprfx05_1x.py RED_New/train_matrix_fd_pron_man_aws.p RED_CorrIncorr/mprfx05/corrup_1x/ RED/trgTrain.txt RED/srcTrain.txt RED_New/train_matrix_fd_pron_aws_man.p RED_New/pseudo_src_correction.txt distance not-mp - D7
+
+>>> python subst_mprfx05_1x.py RED_New/train_matrix_fd_pron_man_aws.p RED_CorrIncorr/mprfx05/corrup_1x_prfx/ RED/trgTrain.txt RED/srcTrain.txt RED_New/train_matrix_fd_pron_aws_man.p RED_New/pseudo_src_correction.txt prefix not-mp - D7

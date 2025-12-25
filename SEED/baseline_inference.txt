@@ -1,0 +1,25 @@
+deactivate
+conda deactivate
+conda activate conda310
+cd /home/avadehra/scribendi/audio-HF/SEED
+clear
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-inference-all.py LT/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt 0-3
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-inference-all.py LT/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt 3-6
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-inference-all.py LT/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt 6-9
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-inference-all.py LT/ /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt 9-15
+
+
+--
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-inference-all.py RED/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt 0-3
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-inference-all.py RED/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt 3-6
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-inference-all.py RED/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt 6-9
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-inference-all.py RED/ /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt 9-15

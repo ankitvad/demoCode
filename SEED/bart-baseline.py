@@ -7,13 +7,13 @@ from datasets import Dataset
 from evaluate import load
 import sys
 import glob
+import random
 from tqdm import tqdm
 import os
 import gc
 #LIbrary to load better CLI parameter arguments
 import argparse
-
-set_seed(240)
+from utils import *
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -21,18 +21,24 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 parser = argparse.ArgumentParser(description="BART pre-training Script")
 parser.add_argument('--train_src', type=str, help='Path to the training source file')
+parser.add_argument('--seed', type=int, help='Random seed for initialization')
 parser.add_argument('--train_trg', type=str, help='Path to the training target file')
 parser.add_argument('--dev_src', type=str, help='Path to the development source file')
 parser.add_argument('--dev_trg', type=str, help='Path to the development target file')
 parser.add_argument('--op_dir', type=str, help='Output directory for the model')
 parser.add_argument('--resume_train', type=int, choices=[0, 1], help='Resume training (1) or start fresh (0)')
 parser.add_argument('--model_path', type=str, default='', help='Path to a pre-trained model (optional)')
-parser.add_argument('--model_type', type=str, choices=["BL", "BB"], help='Type of model to use (default: bart)')
 parser.add_argument('--early_stop', action='store_true', help='Whether to use early stopping during training')
 
 args = parser.parse_args()
 
-op_dir = args.op_dir
+random.seed(args.seed)
+np.random.seed(args.seed)
+torch.manual_seed(args.seed)
+torch.cuda.manual_seed_all(args.seed)
+set_seed(args.seed)
+
+op_dir = args.op_dir.strip("/") + str("/") + str(args.seed) + "/"
 
 resumeTrain = args.resume_train
 if resumeTrain == 1:
@@ -61,7 +67,7 @@ train_ds = loadData(args.train_src, args.train_trg)
 val_ds = loadData(args.dev_src, args.dev_trg)
 
 train_dataset = Dataset.from_pandas(train_ds)
-val_dataset = Dataset.from_pandas(val_ds).shuffle(seed=42).select(range(1000))
+val_dataset = Dataset.from_pandas(val_ds).shuffle(seed=args.seed).select(range(1000))
 
 model_name = args.model_path#"/home/avadehra/scribendi/dwnldModel/bart-large/"
 
@@ -96,6 +102,18 @@ def compute_metrics(eval_preds):
 	result = metric_wer.compute(predictions=decoded_preds, references=decoded_labels)
 	return {"wer_loss" : result}
 
+def generate_metrics(man, aws, hyp, writeOut):
+	writeOut = open(writeOut, "w")
+	p_correct, p_ignore, p_introd, wer_am, wer_hm = getEvalScore(man, aws, hyp)
+	writeOut.write(f"p_correct: {p_correct}, p_ignore: {p_ignore}, p_introd: {p_introd}, wer_am: {wer_am}, wer_hm: {wer_hm}\n\n")
+	#Remove Insertion Edits and Recalculate:
+	writeOut.write("After removing insertion edits:\n\n")
+	hyp_NI = [remove_insert_edits(hyp[i], aws[i], do_test=False) for i in range(len(hyp))]
+	p_correct, p_ignore, p_introd, wer_am, wer_hm = getEvalScore(man, aws, hyp_NI)
+	writeOut.write(f"p_correct: {p_correct}, p_ignore: {p_ignore}, p_introd: {p_introd}, wer_am: {wer_am}, wer_hm: {wer_hm}\n\n")
+	writeOut.close()
+	return True
+
 """## Model"""
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 model.generation_config.max_new_tokens = 150
@@ -110,7 +128,8 @@ model.config.num_beams = 4
 # Batching function
 data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
 
-early_stop = EarlyStoppingCallback(5, 0.0001)
+#early_stop = EarlyStoppingCallback(5, 0.0001)
+early_stop = EarlyStoppingCallback(5, 0.001)
 
 # Define arguments of the finetuning
 training_args = Seq2SeqTrainingArguments(
@@ -123,10 +142,10 @@ training_args = Seq2SeqTrainingArguments(
 	save_strategy="steps",
 	save_steps = 100,
 	eval_steps = 100,
-	save_total_limit=3,# num of checkpoints to save
-	metric_for_best_model="wer_loss",
+	save_total_limit=1,# num of checkpoints to save
+	#metric_for_best_model="wer_loss",
 	load_best_model_at_end = True,
-	num_train_epochs=25,
+	num_train_epochs=30,
 	fp16=False,
 	predict_with_generate=True,
 	dataloader_num_workers=16,
@@ -162,3 +181,34 @@ else:
 
 
 trainer.train(resume_from_checkpoint=resumeTrain)
+
+#Perform Inference on the validation set and save the output.
+
+val_ds = loadData(args.dev_src, args.dev_trg)
+val_dataset = Dataset.from_pandas(val_ds)
+val_ds_tok = val_dataset.map(preprocess_function, batched=True, num_proc=60)#os.cpu_count() - 5)
+#Update the batch size for inference
+trainer.args.per_device_eval_batch_size = 32
+# Get predictions and labels
+predictions = trainer.predict(val_ds_tok)
+preds = predictions.predictions
+labels = predictions.label_ids
+# Decode texts - handle None values properly
+preds[preds == -100] = tokenizer.pad_token_id
+decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
+labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+# Filter out any None values that might still exist
+decoded_preds = [pred.strip() for pred in decoded_preds]
+decoded_labels = [label.strip() for label in decoded_labels]
+# Write out the predictions to a file
+op_dir2 = op_dir.rstrip("/") + "/gen_output_beam4.txt"
+writeOut = open(op_dir2, "w")
+for g in decoded_preds:
+	tmp = writeOut.write(g + "\n")
+writeOut.close()
+op_dir2 = op_dir.rstrip("/") + "/wer_scores.txt"
+tmp = generate_metrics(man = val_ds["trg"].tolist(), aws = val_ds["src"].tolist(), hyp = decoded_preds, writeOut = op_dir2)
+print("Done writing out the evaluation scores to the file: ", op_dir2)
+
+

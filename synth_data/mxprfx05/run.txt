@@ -1,0 +1,197 @@
+deactivate
+conda deactivate
+conda activate conda310
+
+
+cd /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/
+clear
+
+
+mkdir LT_New/mprfx05/
+mkdir RED_New/mprfx05/
+mkdir LT_New/mprfx05/corrup_1x
+mkdir LT_New/mprfx05/corrup_1x_prfx
+
+mkdir RED_New/mprfx05/corrup_1x
+mkdir RED_New/mprfx05/corrup_1x_prfx
+
+
+>>> python subst_mprfx05_1x.py LT_New/train_matrix_fd_pron_man_aws.p LT_New/mprfx05/corrup_1x/ LT/trgTrain.txt LT/srcTrain.txt LT_New/train_matrix_fd_pron_aws_man.p LT/synthData/ASR.txt distance - D7
+
+>>> python subst_mprfx05_1x.py LT_New/train_matrix_fd_pron_man_aws.p LT_New/mprfx05/corrup_1x_prfx/ LT/trgTrain.txt LT/srcTrain.txt LT_New/train_matrix_fd_pron_aws_man.p LT/synthData/ASR.txt prefix - D6
+
+#do the same for RED
+
+>>> python subst_mprfx05_1x.py RED_New/train_matrix_fd_pron_man_aws.p RED_New/mprfx05/corrup_1x/ RED/trgTrain.txt RED/srcTrain.txt RED_New/train_matrix_fd_pron_aws_man.p RED/synthData/ASR.txt distance - D4
+
+>>> python subst_mprfx05_1x.py RED_New/train_matrix_fd_pron_man_aws.p RED_New/mprfx05/corrup_1x_prfx/ RED/trgTrain.txt RED/srcTrain.txt RED_New/train_matrix_fd_pron_aws_man.p RED/synthData/ASR.txt prefix - D7
+
+
+
+--------------
+--------------
+
+#Combine the files together:
+
+'''
+
+LT_MPrfx/:
+correc_1x  corrup_1x
+
+RED_MPrfx/:
+correc_1x  corrup_1x
+
+cd ~/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/
+'''
+
+python combine_folder.py LT_MPrfx/correc_1x/ CORREC - D1
+
+python combine_folder.py RED_MPrfx/correc_1x/ CORREC - D2
+
+python combine_folder.py LT_MPrfx/corrup_1x/ CORRUP - D3
+
+python combine_folder.py RED_MPrfx/corrup_1x/ CORRUP - D4
+
+
+---clean and compress :
+
+
+python removeTXT.py compress - D4
+python removeTXT.py delete - D5
+
+python remove_insert_edits.py - D1
+
+--
+Separate R_H_NI.tsv
+--
+
+python sep_RHNI.py
+
+------------
+##Train the new models:
+
+
+deactivate
+conda deactivate
+conda activate conda310
+cd /home/avadehra/scribendi/audio-HF-samp/
+clear
+
+------------
+
+
+mkdir LT_MPrfx/
+mkdir RED_MPrfx/
+
+
+
+##LT - 1X:
+
+**I-1X-CORREC: -- D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_MPrfx/correc_1x/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir LT_MPrfx/I_1X_CORREC/ --resume_train 0
+
+
+**NI-1X-CORREC: -- D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_MPrfx/correc_1x/H_NI --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_MPrfx/correc_1x/R_NI --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir LT_MPrfx/NI_1X_CORREC/ --resume_train 0
+
+
+**I-1X-CORRUP: -- D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_MPrfx/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir LT_MPrfx/I_1X_CORRUP/ --resume_train 0
+
+
+**NI-1X-CORRUP: -- D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_MPrfx/corrup_1x/H_NI --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/LT_MPrfx/corrup_1x/R_NI --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir LT_MPrfx/NI_1X_CORRUP/ --resume_train 0
+
+
+-------------------------
+
+
+
+##REDACE - 1X:
+
+**I-1X-CORREC: -- D4
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_MPrfx/correc_1x/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir RED_MPrfx/I_1X_CORREC/ --resume_train 0
+
+
+**NI-1X-CORREC: -- D4
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_MPrfx/correc_1x/H_NI --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_MPrfx/correc_1x/R_NI --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir RED_MPrfx/NI_1X_CORREC/ --resume_train 0
+
+
+**I-1X-CORRUP: -- D4
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_MPrfx/corrup_1x/CORRUP --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir RED_MPrfx/I_1X_CORRUP/ --resume_train 0
+
+
+**NI-1X-CORRUP: -- D4
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_MPrfx/corrup_1x/H_NI --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/new_run/RED_MPrfx/corrup_1x/R_NI --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir RED_MPrfx/NI_1X_CORRUP/ --resume_train 0
+
+
+
+----------------
+----------------
+
+#Finetune on Groundtruth Data:
+
+
+deactivate
+conda deactivate
+conda activate conda310
+cd /home/avadehra/scribendi/audio-HF-samp/
+clear
+
+
+mkdir LT_MPrfx/FT_LOW/
+mkdir RED_MPrfx/FT_LOW/
+
+
+#FT Model - CORRUP_1X - NI + I - RA + LT:
+
+** LT - CORRUP_1X : - D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-ft.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/srcTrain.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/trgTrain.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir LT_MPrfx/FT_LOW/CORRUP_1X/ --start_model LT_MPrfx/I_1X_CORRUP/checkpoint-23040/
+
+** LT - CORRUP_1X - NI : - D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-ft.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/srcTrain.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/trgTrain.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir LT_MPrfx/FT_LOW/CORRUP_1X_NI/ --start_model LT_MPrfx/NI_1X_CORRUP/checkpoint-23040/
+
+
+** LT - CORREC_1X : - D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-ft.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/srcTrain.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/trgTrain.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir LT_MPrfx/FT_LOW/CORREC_1X/ --start_model LT_MPrfx/I_1X_CORREC/checkpoint-23040/
+
+** LT - CORREC_1X - NI : - D5
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-ft.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/srcTrain.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/trgTrain.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_src0.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir LT_MPrfx/FT_LOW/CORREC_1X_NI/ --start_model LT_MPrfx/NI_1X_CORREC/checkpoint-23040/
+
+
+
+------
+------
+
+** RED - CORRUP_1X : - D4
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-ft.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/srcTrain.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/trgTrain.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir RED_MPrfx/FT_LOW/CORRUP_1X/ --start_model RED_MPrfx/I_1X_CORRUP/checkpoint-26925/
+
+
+** RED - CORRUP_1X - NI : - D4
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-ft.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/srcTrain.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/trgTrain.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir RED_MPrfx/FT_LOW/CORRUP_1X_NI/ --start_model RED_MPrfx/NI_1X_CORRUP/checkpoint-26925/
+
+
+** RED - CORREC_1X : - D4
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-ft.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/srcTrain.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/trgTrain.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir RED_MPrfx/FT_LOW/CORREC_1X/ --start_model RED_MPrfx/I_1X_CORREC/checkpoint-26925/
+
+
+** RED - CORREC_1X - NI : - D4
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-ft.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/srcTrain.txt --train_trg /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/trgTrain.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_src.txt --dev_trg /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir RED_MPrfx/FT_LOW/CORREC_1X_NI/ --start_model RED_MPrfx/NI_1X_CORREC/checkpoint-26925/
+
+------------------
