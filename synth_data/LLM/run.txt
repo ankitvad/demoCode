@@ -1,0 +1,53 @@
+deactivate
+conda deactivate
+conda activate conda310
+
+
+cd /home/avadehra/scribendi/RMUData/ASR_SD_LLM
+clear
+
+
+#Threshold Sweep - baseline Method:
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/LT/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/killarneyTransf/LT/srcTrain.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/LT/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/LT/srcTrain.txt distance LT_Train_Dist_CORREC
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/LT/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/killarneyTransf/LT/srcTrain.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/LT/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/LT/srcTrain.txt prefix LT_Train_PRFX_CORREC
+
+---
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/LT/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/RMUData/ASR/LT/lib_ted_src0.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/LT/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/LT/srcTrain.txt distance LT_Dev_Dist_CORREC
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/LT/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/RMUData/ASR/LT/lib_ted_src0.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/LT/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/LT/srcTrain.txt prefix LT_Dev_PRFX_CORREC
+
+
+---
+---
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/RED/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/killarneyTransf/RED/srcTrain.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/RED/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/RED/srcTrain.txt distance RED_Train_Dist_CORREC
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/RED/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/killarneyTransf/RED/srcTrain.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/RED/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/RED/srcTrain.txt prefix RED_Train_PRFX_CORREC
+
+---
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/RED/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/RMUData/ASR/RED/red_src.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/RED/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/RED/srcTrain.txt distance RED_Dev_Dist_CORREC
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/RED/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/RMUData/ASR/RED/red_src.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/RED/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/RED/srcTrain.txt prefix RED_Dev_PRFX_CORREC
+
+
+******
+******
+
+FR Data:
+
+#Threshold Sweep - baseline Method:
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/FR/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/killarneyTransf/FR/srcTrain.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/FR/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/FR/srcTrain.txt distance FR_Train_Dist_CORREC
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/FR/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/killarneyTransf/FR/srcTrain.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/FR/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/FR/srcTrain.txt prefix FR_Train_PRFX_CORREC
+
+---
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/FR/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/dataAudio/parsed/FR_DT_src.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/FR/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/FR/srcTrain.txt distance FR_Dev_Dist_CORREC
+
+python base_thresh_1x.py /home/avadehra/scribendi/killarneyTransf/FR/train_matrix_fd_pron_aws_man.p /home/avadehra/scribendi/dataAudio/parsed/FR_DT_src.txt /home/avadehra/scribendi/RMUData/ASR_SD_LLM/ /home/avadehra/scribendi/killarneyTransf/FR/trgTrain.txt /home/avadehra/scribendi/killarneyTransf/FR/srcTrain.txt prefix FR_Dev_PRFX_CORREC
+
