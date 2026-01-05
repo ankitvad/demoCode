@@ -19,8 +19,10 @@ def wer_edit_breakdown(
 	S = result.substitutions
 	D = result.deletions
 	I = result.insertions
-	N = result.reference_word_count
-	wer = (S + D + I) / max(1, N)
+	N = 0
+	for ref in result.references:
+		N += len(ref)
+	wer = result.wer
 	return {
 		"wer": round(wer, 4),
 		"insertions": I,
