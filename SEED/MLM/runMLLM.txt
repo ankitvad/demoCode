@@ -1,0 +1,79 @@
+deactivate
+conda deactivate
+conda activate conda310
+cd /home/avadehra/scribendi/audio-HF-samp/SEED
+clear
+
+mkdir MLLM/
+
+#BART - Base:
+
+	##LT - SRC: -> (D5 - 0)
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir MLLM/LT_BB_SRC/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+	##LT - TRG: -> (D5 - 1)
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/MLLM/LT_New/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir MLLM/LT_BB_TRG/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+#Bart - Large:
+
+	##LT - SRC: -> (D5 - 2)
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/LT/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir MLLM/LT_BL_SRC/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+	##LT - TRG: -> (D5 - 3)
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/MLLM/LT_New/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/LIB_TED/dev_trg.txt --op_dir MLLM/LT_BL_TRG/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+-------------
+-------------
+
+#BART - Base:
+
+	##RED - SRC: -> (D1 - 0)
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir MLLM/RED_BB_SRC/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+	##RED - TRG: -> (D1 - 1)
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/MLLM/RED_New/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir MLLM/RED_BB_TRG/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-base/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+#Bart - Large:
+
+	##RED - SRC: -> (D1 - 2)
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/RED/synthData/ASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir MLLM/RED_BL_SRC/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+	##RED - TRG: -> (D1 - 3)
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/MLLM/RED_New/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/RED/dev_trg.txt --op_dir MLLM/RED_BL_TRG/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/bart-large/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+-------------
+-------------
+
+#BARTHEZ - Base:
+
+	##FR - SRC: -> (D2 - 0)
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=0 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/FR/srcASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/FR/dev/trg.txt --op_dir MLLM/FR_BB_SRC/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/barthez/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+	##FR - TRG: -> (D2 - 1)
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=1 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/MLLM/FR_New/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/FR/dev/trg.txt --op_dir MLLM/FR_BB_TRG/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/barthez/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+#MBartHEZ - Large:
+
+	##FR - SRC: -> (D2 - 2)
+
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=2 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/FR/srcASR.txt --dev_src /home/avadehra/scribendi/dataAudio/parsed/FR/dev/trg.txt --op_dir MLLM/FR_BL_SRC/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/mbarthez/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
+
+	##FR - TRG: -> (D2 - 3)
+
+TOKENIZERS_PARALLELISM=False CUDA_VISIBLE_DEVICES=3 python bart-mlm.py --train_src /home/avadehra/scribendi/gotutiyan-BART/syntheticDataAudio/Data/MLLM/FR_New/CORREC --dev_src /home/avadehra/scribendi/dataAudio/parsed/FR/dev/trg.txt --op_dir MLLM/FR_BL_TRG/ --resume_train 0 --model_path /home/avadehra/scribendi/dwnldModel/mbarthez/ --seed 100 --mlm_prob 0.15 --poisson_lambda 3.0 --early_stop
