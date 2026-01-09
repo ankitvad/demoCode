@@ -1,6 +1,8 @@
 #Function to ignore all insertion errors from hypothesis -> reference. Generate reference_tmp and return that sentence.
 # Also test the generated sentence does not have any insert errors anymore!
 
+#print(f"WER: {results['Old WER']:.4f} -> {results['New WER']:.4f} | Corr: {results['Correction WER']:.4f} | Intr: {results['Introduction WER']:.4f} | Gain: {results['Net Improvement']:+.4f}")
+
 import jiwer
 import glob
 import sys
