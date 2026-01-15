@@ -1,0 +1,12 @@
+set nu
+set autoindent
+set expandtab
+set backspace=indent,eol,start
+filetype on
+syntax on
+"set cursorline
+"set cursorcolumn
+set tabstop=4
+set nobackup
+"set showcmd
+set showmode
